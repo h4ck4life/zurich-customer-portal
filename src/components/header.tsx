@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 const navigationLinks = [
   { href: "/users", label: "Users" },
@@ -28,6 +28,10 @@ const navigationLinks = [
 
 export default function Header() {
   const { data: session } = useSession();
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: "/" });
+  };
 
   return (
     <header className="w-full border-b">
@@ -61,8 +65,8 @@ export default function Header() {
         {/* Auth Buttons */}
         <div className="hidden md:flex items-center gap-4">
           {session ? (
-            <Button variant="outline" asChild>
-              <Link href="/api/auth/signout">Sign Out</Link>
+            <Button variant="outline" onClick={handleSignOut}>
+              Sign Out
             </Button>
           ) : (
             <Button variant="outline" asChild>
@@ -96,8 +100,12 @@ export default function Header() {
                     </Link>
                   ))}
                   <div className="pt-4">
-                    <Button className="w-full" variant="outline" asChild>
-                      <Link href="/api/auth/signout">Sign Out</Link>
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      onClick={handleSignOut}
+                    >
+                      Sign Out
                     </Button>
                   </div>
                 </div>
