@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,74 +15,32 @@ import {
 } from "@/components/ui/table";
 import { Eye, EyeOff, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-interface User {
-  id: number;
-  email: string;
-  first_name: string;
-  last_name: string;
-  avatar: string;
-}
-
-interface ApiResponse {
-  page: number;
-  per_page: number;
-  total: number;
-  total_pages: number;
-  data: User[];
-}
-
-interface EmailState {
-  [key: number]: {
-    email: string;
-    loading: boolean;
-    visible: boolean;
-  };
-}
+import { RootState } from "@/store/store";
+import { AppDispatch } from "@/store/store";
+import {
+  fetchUsers,
+  fetchUserEmail,
+  setEmailVisibility,
+} from "@/store/features/userSlice";
 
 export default function UserList() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [emailStates, setEmailStates] = useState<EmailState>({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-
-  const fetchUsers = async (page: number) => {
-    // Prevent invalid page numbers
-    if (page < 1 || (totalPages > 0 && page > totalPages)) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/users?page=${page}`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch users");
-      }
-
-      const data: ApiResponse = await response.json();
-      setUsers(data.data);
-      setTotalPages(data.total_pages);
-      setCurrentPage(data.page);
-
-      // Reset email states for new page
-      setEmailStates({});
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error fetching users");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    users,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    emailVisibility: emailStates,
+  } = useSelector((state: RootState) => state.users);
 
   useEffect(() => {
-    fetchUsers(1);
-  }, []);
+    dispatch(fetchUsers(1));
+  }, [dispatch]);
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;
-    fetchUsers(page);
+    dispatch(fetchUsers(page));
   };
 
   const toggleEmailVisibility = async (userId: number) => {
@@ -89,51 +48,12 @@ export default function UserList() {
 
     // If we've already fetched the email, just toggle visibility
     if (currentState?.email) {
-      setEmailStates((prev) => ({
-        ...prev,
-        [userId]: {
-          ...prev[userId],
-          visible: !prev[userId].visible,
-        },
-      }));
+      dispatch(setEmailVisibility({ userId, visible: !currentState.visible }));
       return;
     }
 
     // Fetch email from API
-    try {
-      setEmailStates((prev) => ({
-        ...prev,
-        [userId]: {
-          email: "",
-          loading: true,
-          visible: true,
-        },
-      }));
-
-      const response = await fetch(`/api/users/${userId}`);
-      if (!response.ok) throw new Error("Failed to fetch email");
-
-      const data = await response.json();
-
-      setEmailStates((prev) => ({
-        ...prev,
-        [userId]: {
-          email: data.email,
-          loading: false,
-          visible: true,
-        },
-      }));
-    } catch (err) {
-      console.error("Error fetching email:", err);
-      setEmailStates((prev) => ({
-        ...prev,
-        [userId]: {
-          email: "Error loading email",
-          loading: false,
-          visible: true,
-        },
-      }));
-    }
+    dispatch(fetchUserEmail(userId));
   };
 
   if (error) {
