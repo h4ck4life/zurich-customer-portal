@@ -31,9 +31,10 @@ export async function GET(request: Request) {
 
         const data: ApiResponse = await response.json();
 
-        // Filter users with first name starting with 'G' or last name with 'W'
+        // Filter users with first name starting with 'G' or last name with 'W' (case insensitive)
         const filteredUsers = data.data.filter(user =>
-            user.first_name.startsWith('G') || user.last_name.startsWith('W')
+            user.first_name.toLowerCase().startsWith('g') ||
+            user.last_name.toLowerCase().startsWith('w')
         );
 
         // Mask emails in the filtered results

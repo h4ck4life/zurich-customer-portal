@@ -20,7 +20,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface User {
@@ -39,11 +39,19 @@ interface ApiResponse {
   data: User[];
 }
 
+interface EmailState {
+  [key: number]: {
+    email: string;
+    loading: boolean;
+    visible: boolean;
+  };
+}
+
 export default function UserList() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [visibleEmails, setVisibleEmails] = useState<Set<number>>(new Set());
+  const [emailStates, setEmailStates] = useState<EmailState>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -60,6 +68,9 @@ export default function UserList() {
       setUsers(data.data);
       setTotalPages(data.total_pages);
       setCurrentPage(data.page);
+
+      // Reset email states for new page
+      setEmailStates({});
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error fetching users");
     } finally {
@@ -71,16 +82,56 @@ export default function UserList() {
     fetchUsers(1);
   }, []);
 
-  const toggleEmailVisibility = (userId: number) => {
-    setVisibleEmails((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(userId)) {
-        newSet.delete(userId);
-      } else {
-        newSet.add(userId);
-      }
-      return newSet;
-    });
+  const toggleEmailVisibility = async (userId: number) => {
+    const currentState = emailStates[userId];
+
+    // If we've already fetched the email, just toggle visibility
+    if (currentState?.email) {
+      setEmailStates((prev) => ({
+        ...prev,
+        [userId]: {
+          ...prev[userId],
+          visible: !prev[userId].visible,
+        },
+      }));
+      return;
+    }
+
+    // Fetch email from API
+    try {
+      setEmailStates((prev) => ({
+        ...prev,
+        [userId]: {
+          email: "",
+          loading: true,
+          visible: true,
+        },
+      }));
+
+      const response = await fetch(`/api/users/${userId}`);
+      if (!response.ok) throw new Error("Failed to fetch email");
+
+      const data = await response.json();
+
+      setEmailStates((prev) => ({
+        ...prev,
+        [userId]: {
+          email: data.email,
+          loading: false,
+          visible: true,
+        },
+      }));
+    } catch (err) {
+      console.error("Error fetching email:", err);
+      setEmailStates((prev) => ({
+        ...prev,
+        [userId]: {
+          email: "Error loading email",
+          loading: false,
+          visible: true,
+        },
+      }));
+    }
   };
 
   if (error) {
@@ -123,17 +174,25 @@ export default function UserList() {
                       <TableCell>{user.first_name}</TableCell>
                       <TableCell>{user.last_name}</TableCell>
                       <TableCell>
-                        {visibleEmails.has(user.id)
-                          ? user.email
-                          : user.email.replace(/(.{2})(.*)(@.*)/, "$1***$3")}
+                        {emailStates[user.id]?.loading ? (
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Loading...
+                          </div>
+                        ) : emailStates[user.id]?.visible ? (
+                          emailStates[user.id]?.email
+                        ) : (
+                          user.email.replace(/(.{2})(.*)(@.*)/, "$1***$3")
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => toggleEmailVisibility(user.id)}
+                          disabled={emailStates[user.id]?.loading}
                         >
-                          {visibleEmails.has(user.id) ? (
+                          {emailStates[user.id]?.visible ? (
                             <EyeOff className="h-4 w-4" />
                           ) : (
                             <Eye className="h-4 w-4" />
