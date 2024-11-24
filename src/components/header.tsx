@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 const navigationLinks = [
+  { href: "/users", label: "Users" },
   { href: "/#", label: "Insurance" },
   { href: "/#", label: "Claims" },
   { href: "/#", label: "Portfolio" },
