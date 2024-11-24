@@ -13,13 +13,15 @@ interface ApiResponse {
     data: UserDetail;
 }
 
-interface Params {
-    id: string;
-}
+type Params = {
+    params: {
+        id: string;
+    };
+};
 
 export async function GET(
     request: Request,
-    { params }: { params: Params }
+    { params }: Params
 ) {
     try {
         const id = params.id;
