@@ -12,9 +12,13 @@ interface ApiResponse {
     data: UserDetail;
 }
 
+interface Params {
+    id: string;
+}
+
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Params }
 ) {
     try {
         const id = params.id;
