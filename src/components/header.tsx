@@ -65,7 +65,7 @@ export default function Header() {
             </Button>
           ) : (
             <Button variant="outline" asChild>
-              <Link href="/api/auth/signin">Sign In</Link>
+              <Link href="/api/auth/signin?callbackUrl=/users">Sign In</Link>
             </Button>
           )}
         </div>
@@ -109,7 +109,7 @@ export default function Header() {
         {!session && (
           <div className="md:hidden">
             <Button variant="outline" asChild>
-              <Link href="/api/auth/signin">Sign In</Link>
+              <Link href="/api/auth/signin?callbackUrl=/users">Sign In</Link>
             </Button>
           </div>
         )}
