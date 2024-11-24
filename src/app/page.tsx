@@ -6,7 +6,6 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1">
-        {/* Hero Section */}
         <section className="py-20 md:py-32 bg-gradient-to-b from-muted/50 to-background">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6">
@@ -18,16 +17,14 @@ export default function Home() {
             </p>
             <div className="flex gap-4 justify-center">
               <Button size="lg" asChild>
-                <Link href="/insurance">Get Started</Link>
+                <Link href="/#">Get Started</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="/portfolio">View Plans</Link>
+                <Link href="/#">View Plans</Link>
               </Button>
             </div>
           </div>
         </section>
-
-        {/* Features Section */}
         <section className="py-20">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
