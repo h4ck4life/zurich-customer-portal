@@ -13,6 +13,14 @@ export const authOptions: NextAuthOptions = {
         signIn: '/auth/signin',
         error: '/auth/error',
     },
+    session: {
+        strategy: "jwt",
+        maxAge: 15 * 60, // 15 minutes
+        updateAge: 5 * 60, // Update session every 5 minutes
+    },
+    jwt: {
+        maxAge: 15 * 60,        // 15 minutes
+    },
     callbacks: {
         async session({ session, token }) {
             if (session?.user) {
